@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { HiOutlineShoppingCart } from "react-icons/hi";
+import truncateText from"../components/TruncateText"; 
 import ProductViewModel from "./productViewModel";
 const ProductCard = ({
   productId,
@@ -46,11 +47,11 @@ const ProductCard = ({
         </div>
 
         <h3 className="text-[14px] lg:text-[16px] font-semibold text-slate-700 mb-1 truncate">
-          {productName}
+          {truncateText(productName,20)}
         </h3>
 
         <p className="text-[13px] text-slate-500 line-clamp-2">
-          {description}
+          {truncateText(description,15)}
         </p>
       </div>
 
