@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { HiOutlineShoppingCart } from "react-icons/hi";
-import truncateText from"../components/TruncateText"; 
+import truncateText from"./TruncateText"; 
 import ProductViewModel from "./productViewModel";
 const ProductCard = ({
   productId,
