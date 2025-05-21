@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { HiOutlineShoppingCart } from "react-icons/hi";
-import truncateText from"./TruncateText"; 
+import truncateText from "./TruncateText";
 import ProductViewModel from "./productViewModel";
+import { addToCart } from "../store/actions";
+import toast from "react-hot-toast"
+
 const ProductCard = ({
   productId,
   productName,
@@ -15,7 +19,8 @@ const ProductCard = ({
 }) => {
   const [openProductViewModal, setOpenProductViewModal] = useState(false);
   const [selectedViewProduct, setSelectedViewProduct] = useState(null);
-  const btnLoader = false;
+  const dispatch = useDispatch();
+
   const isAvailable = quantity && Number(quantity) > 0;
 
   const handleProductView = (product) => {
@@ -24,7 +29,7 @@ const ProductCard = ({
   };
 
   const productDetails = {
-    id: productId,
+    productId,
     productName,
     image,
     description,
@@ -35,8 +40,12 @@ const ProductCard = ({
     about,
   };
 
+  const addToCartHandler = () => {
+    dispatch(addToCart(productDetails, 1,toast));
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded-md shadow-sm hover:shadow-md transition-shadow duration-300 ease-in-out p-3 min-h-[400px]  flex flex-col justify-between">
+    <div className="bg-white border border-slate-200 rounded-md shadow-sm hover:shadow-md transition-shadow duration-300 ease-in-out p-3 min-h-[400px] flex flex-col justify-between">
       <div onClick={() => handleProductView(productDetails)} className="cursor-pointer">
         <div className="w-full h-44 overflow-hidden rounded-md mb-2">
           <img
@@ -47,11 +56,11 @@ const ProductCard = ({
         </div>
 
         <h3 className="text-[14px] lg:text-[16px] font-semibold text-slate-700 mb-1 truncate">
-          {truncateText(productName,20)}
+          {truncateText(productName, 20)}
         </h3>
 
         <p className="text-[13px] text-slate-500 line-clamp-2">
-          {truncateText(description,15)}
+          {truncateText(description, 15)}
         </p>
       </div>
 
@@ -74,10 +83,8 @@ const ProductCard = ({
 
       <div className="mt-2 flex justify-end">
         <button
-          disabled={!isAvailable || btnLoader}
-          onClick={() => {
-            // Add to cart logic
-          }}
+          disabled={!isAvailable}
+          onClick={addToCartHandler}
           className={`flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md text-white font-medium transition-colors duration-200 ${
             isAvailable
               ? "bg-blue-600 hover:bg-blue-700"
@@ -88,6 +95,7 @@ const ProductCard = ({
           {isAvailable ? "Add to Cart" : "Stock Out"}
         </button>
       </div>
+
       <ProductViewModel
         open={openProductViewModal}
         setOpen={setOpenProductViewModal}
