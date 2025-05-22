@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -11,7 +12,10 @@ import Badge from "@mui/material/Badge";
 import LoginIcon from "@mui/icons-material/Login";
 
 export default function NavBar() {
-  const cartItemCount = 1; // Static count
+  const cart = useSelector((state) => state.carts.cart || []);
+
+  // Sum the quantity of all items in the cart
+  const cartItemCount = cart.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
 
   return (
     <AppBar position="static" color="primary">
@@ -33,14 +37,14 @@ export default function NavBar() {
             Products
           </Button>
 
-          {/* Static Cart Icon with Always-Visible Badge */}
+          {/* Dynamic Cart Icon with Badge */}
           <IconButton color="inherit" component={Link} to="/cart">
             <Badge
               badgeContent={cartItemCount}
               sx={{
                 "& .MuiBadge-badge": {
-                  backgroundColor: "#003366", // match login button
-                  color: "#fff",               // white number
+                  backgroundColor: "#003366",
+                  color: "#fff",
                 },
               }}
             >
@@ -55,14 +59,13 @@ export default function NavBar() {
             About
           </Button>
 
-          {/* Login Button */}
           <Button
             variant="contained"
             component={Link}
             to="/login"
             startIcon={<LoginIcon />}
             sx={{
-              backgroundColor: "#003366",  // dark blue
+              backgroundColor: "#003366",
               color: "#fff",
               borderRadius: "20px",
               paddingX: 3,
@@ -70,7 +73,7 @@ export default function NavBar() {
               fontWeight: "bold",
               boxShadow: "none",
               "&:hover": {
-                backgroundColor: "#002244",  // darker on hover
+                backgroundColor: "#002244",
                 boxShadow: "none",
               },
             }}
