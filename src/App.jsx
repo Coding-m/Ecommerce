@@ -5,6 +5,9 @@ import Home from "./components/home/Home";
 import Navbar from "./components/Navbar";
 import Cart from "./cart/Cart";
 import { Toaster } from "react-hot-toast";
+import LogIn from "./login/LogIn";
+import Register from "./Register/Register"
+
 
 const App = () => {
   const [count, setCount] = useState(0);
@@ -17,7 +20,8 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
-
+          <Route path="/login" element={<LogIn/>}/>
+          <Route path="/register" element={<Register/>}/>
         </Routes>
       </Router>
 
