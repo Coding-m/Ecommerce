@@ -10,11 +10,13 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Badge from "@mui/material/Badge";
 import LoginIcon from "@mui/icons-material/Login";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import UserMenu from "./UserMenu";
 
 export default function NavBar() {
   const cart = useSelector((state) => state.carts.cart || []);
+  const user = useSelector((state) => state.auth.user);
 
-  // Sum the quantity of all items in the cart
   const cartItemCount = cart.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
 
   return (
@@ -30,14 +32,9 @@ export default function NavBar() {
         </Typography>
 
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Button color="inherit" component={Link} to="/">
-            Home
-          </Button>
-          <Button color="inherit" component={Link} to="/products">
-            Products
-          </Button>
+          <Button color="inherit" component={Link} to="/">Home</Button>
+          <Button color="inherit" component={Link} to="/products">Products</Button>
 
-          {/* Dynamic Cart Icon with Badge */}
           <IconButton color="inherit" component={Link} to="/cart">
             <Badge
               badgeContent={cartItemCount}
@@ -52,34 +49,34 @@ export default function NavBar() {
             </Badge>
           </IconButton>
 
-          <Button color="inherit" component={Link} to="/contact">
-            Contact
-          </Button>
-          <Button color="inherit" component={Link} to="/about">
-            About
-          </Button>
+          <Button color="inherit" component={Link} to="/contact">Contact</Button>
+          <Button color="inherit" component={Link} to="/about">About</Button>
 
-          <Button
-            variant="contained"
-            component={Link}
-            to="/login"
-            startIcon={<LoginIcon />}
-            sx={{
-              backgroundColor: "#003366",
-              color: "#fff",
-              borderRadius: "20px",
-              paddingX: 3,
-              textTransform: "none",
-              fontWeight: "bold",
-              boxShadow: "none",
-              "&:hover": {
-                backgroundColor: "#002244",
+          {user && user.id ? (
+            <UserMenu />
+          ) : (
+            <Button
+              variant="contained"
+              component={Link}
+              to="/login"
+              startIcon={<LoginIcon />}
+              sx={{
+                backgroundColor: "#003366",
+                color: "#fff",
+                borderRadius: "20px",
+                paddingX: 3,
+                textTransform: "none",
+                fontWeight: "bold",
                 boxShadow: "none",
-              },
-            }}
-          >
-            Login
-          </Button>
+                "&:hover": {
+                  backgroundColor: "#002244",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Login
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

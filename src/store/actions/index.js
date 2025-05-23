@@ -1,5 +1,7 @@
 
 import api from "../../api/api"
+import toast from "react-hot-toast";
+
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
@@ -117,24 +119,32 @@ export const removeFromCart =  (data, toast) => (dispatch, getState) => {
 }
 
 
-
-export const authenticateSignInUser 
-    = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
+export const authenticateSignInUser = 
+    (sendData, toast, reset, navigate, setLoader) => async (dispatch, getState) => {
         try {
             setLoader(true);
             const { data } = await api.post("/auth/signin", sendData);
             dispatch({ type: "LOGIN_USER", payload: data });
+
+            // Now getState is defined, so this will work:
+            console.log("User after login:", getState().auth.user);
+
             localStorage.setItem("auth", JSON.stringify(data));
+
             reset();
             toast.success("Login Success");
+            console.log("Navigating to /");
+           
             navigate("/");
+            window.location.reload();
+
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.message || "Internal Server Error");
         } finally {
             setLoader(false);
         }
-}
+    };
 
 
 export const registerNewUser 
@@ -160,164 +170,4 @@ export const logOutUser = (navigate) => (dispatch) => {
     navigate("/login");
 };
 
-export const addUpdateUserAddress =
-     (sendData, toast, addressId, setOpenAddressModal) => async (dispatch, getState) => {
-    /*
-    const { user } = getState().auth;
-    await api.post(`/addresses`, sendData, {
-          headers: { Authorization: "Bearer " + user.jwtToken },
-        });
-    */
-    dispatch({ type:"BUTTON_LOADER" });
-    try {
-        if (!addressId) {
-            const { data } = await api.post("/addresses", sendData);
-        } else {
-            await api.put(`/addresses/${addressId}`, sendData);
-        }
-        dispatch(getUserAddresses());
-        toast.success("Address saved successfully");
-        dispatch({ type:"IS_SUCCESS" });
-    } catch (error) {
-        console.log(error);
-        toast.error(error?.response?.data?.message || "Internal Server Error");
-        dispatch({ type:"IS_ERROR", payload: null });
-    } finally {
-        setOpenAddressModal(false);
-    }
-};
 
-
-export const deleteUserAddress = 
-    (toast, addressId, setOpenDeleteModal) => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "BUTTON_LOADER" });
-        await api.delete(`/addresses/${addressId}`);
-        dispatch({ type: "IS_SUCCESS" });
-        dispatch(getUserAddresses());
-        dispatch(clearCheckoutAddress());
-        toast.success("Address deleted successfully");
-    } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Some Error Occured",
-         });
-    } finally {
-        setOpenDeleteModal(false);
-    }
-};
-
-export const clearCheckoutAddress = () => {
-    return {
-        type: "REMOVE_CHECKOUT_ADDRESS",
-    }
-};
-
-export const getUserAddresses = () => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get(`/addresses`);
-        dispatch({type: "USER_ADDRESS", payload: data});
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch user addresses",
-         });
-    }
-};
-
-export const selectUserCheckoutAddress = (address) => {
-    localStorage.setItem("CHECKOUT_ADDRESS", JSON.stringify(address));
-    
-    return {
-        type: "SELECT_CHECKOUT_ADDRESS",
-        payload: address,
-    }
-};
-
-
-export const addPaymentMethod = (method) => {
-    return {
-        type: "ADD_PAYMENT_METHOD",
-        payload: method,
-    }
-};
-
-
-export const createUserCart = (sendCartItems) => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        await api.post('/cart/create', sendCartItems);
-        await dispatch(getUserCart());
-    } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to create cart items",
-         });
-    }
-};
-
-
-export const getUserCart = () => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get('/carts/users/cart');
-        
-        dispatch({
-            type: "GET_USER_CART_PRODUCTS",
-            payload: data.products,
-            totalPrice: data.totalPrice,
-            cartId: data.cartId
-        })
-        localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch cart items",
-         });
-    }
-};
-
-
-export const createStripePaymentSecret 
-    = (totalPrice) => async (dispatch, getState) => {
-        try {
-            dispatch({ type: "IS_FETCHING" });
-            const { data } = await api.post("/order/stripe-client-secret", {
-                "amount": Number(totalPrice) * 100,
-                "currency": "usd"
-              });
-            dispatch({ type: "CLIENT_SECRET", payload: data });
-              localStorage.setItem("client-secret", JSON.stringify(data));
-              dispatch({ type: "IS_SUCCESS" });
-        } catch (error) {
-            console.log(error);
-            toast.error(error?.response?.data?.message || "Failed to create client secret");
-        }
-};
-
-
-export const stripePaymentConfirmation 
-    = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
-        try {
-            const response  = await api.post("/order/users/payments/online", sendData);
-            if (response.data) {
-                localStorage.removeItem("CHECKOUT_ADDRESS");
-                localStorage.removeItem("cartItems");
-                localStorage.removeItem("client-secret");
-                dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
-                dispatch({ type: "CLEAR_CART"});
-                toast.success("Order Accepted");
-              } else {
-                setErrorMesssage("Payment Failed. Please try again.");
-              }
-        } catch (error) {
-            setErrorMesssage("Payment Failed. Please try again.");
-        }
-};

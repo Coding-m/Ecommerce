@@ -7,6 +7,7 @@ import Cart from "./cart/Cart";
 import { Toaster } from "react-hot-toast";
 import LogIn from "./login/LogIn";
 import Register from "./Register/Register"
+import PrivateRoute from "./components/PrivateRoute";
 
 
 const App = () => {
@@ -22,6 +23,9 @@ const App = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<LogIn/>}/>
           <Route path="/register" element={<Register/>}/>
+          <Route path="/" element={<PrivateRoute publicPage/>}/>
+          
+
         </Routes>
       </Router>
 
