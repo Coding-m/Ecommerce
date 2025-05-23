@@ -155,6 +155,7 @@ export const registerNewUser
             reset();
             toast.success(data?.message || "User Registered Successfully");
             navigate("/login");
+            window.location.reload();
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.message || error?.response?.data?.password || "Internal Server Error");
