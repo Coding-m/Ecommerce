@@ -7,9 +7,8 @@ import Cart from "./cart/Cart";
 import { Toaster } from "react-hot-toast";
 import LogIn from "./login/LogIn";
 import CheckOut from "./components/checkout/CheckOut";
-import Register from "./Register/Register"
+import Register from "./Register/Register";
 import PrivateRoute from "./components/PrivateRoute";
-
 
 const App = () => {
   const [count, setCount] = useState(0);
@@ -22,12 +21,13 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/login" element={<LogIn/>}/>
-          <Route path="/register" element={<Register/>}/>
-          <Route path="/checkout" element={<CheckOut/>}/>
-          <Route path="/" element={<PrivateRoute publicPage/>}/>
-          
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/register" element={<Register />} />
 
+          {/* Protected Route */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/checkout" element={<CheckOut />} />
+          </Route>
         </Routes>
       </Router>
 
