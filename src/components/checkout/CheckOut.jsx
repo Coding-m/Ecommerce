@@ -5,11 +5,14 @@ import { toast } from 'react-toastify';
 
 // Custom components
 import AddressInfo from './AddressInfo';
-//import PaymentMethod from './PaymentMethod';
-//import OrderSummary from './OrderSummary';
-//import StripePayment from './StripePayment';
-//import PaypalPayment from './PaypalPayment';
-//import ErrorPage from './ErrorPage';
+import PaymentMethod from './PaymentMethod';
+console.log("PaymentMethod component:", PaymentMethod);
+
+
+import OrderSummary from './OrderSummary';
+import StripePayment from './StripePayment';
+import PaypalPayment from './PaypalPayment';
+import ErrorPage from './ErrorPage';
 
 // Actions
 import { getUserAddresses } from '../../store/actions';
