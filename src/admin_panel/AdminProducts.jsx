@@ -76,6 +76,14 @@ export default function AdminProducts() {
   async function handleSubmit(e) {
     e.preventDefault();
 
+<<<<<<< HEAD
+=======
+    const method = editing ? 'PUT' : 'POST';
+    const url = editing
+      ? `${API_BASE}/admin/products/${form.productId}`
+      : `${API_BASE}/admin/categories/${form.categoryId}/product`;
+
+>>>>>>> 9c28fd31fb8bdae9b32840e1beea21e7740b5312
     const payload = {
       productName: form.productName,
       description: form.description,
@@ -87,6 +95,7 @@ export default function AdminProducts() {
     };
 
     try {
+<<<<<<< HEAD
       let savedProduct;
 
       if (editing) {
@@ -144,13 +153,42 @@ export default function AdminProducts() {
     } catch (err) {
       console.error(err);
       alert(err.message || 'Something went wrong');
+=======
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Failed to save product');
+      const savedProduct = await res.json();
+
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        const imageRes = await fetch(`${API_BASE}/products/${savedProduct.productId}/image`, {
+          method: 'PUT',
+          body: formData,
+        });
+        if (!imageRes.ok) throw new Error('Image upload failed');
+      }
+
+      fetchProducts();
+      handleCloseDialog();
+    } catch (error) {
+      alert(error.message);
+>>>>>>> 9c28fd31fb8bdae9b32840e1beea21e7740b5312
     }
   }
 
   function handleEdit(product) {
     setForm({
       ...product,
+<<<<<<< HEAD
       categoryId: '', // Not needed while editing
+=======
+      categoryId: '',
+>>>>>>> 9c28fd31fb8bdae9b32840e1beea21e7740b5312
     });
     setImageFile(null);
     setEditing(true);

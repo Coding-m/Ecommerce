@@ -2,6 +2,7 @@
 import api from "../../api/api"
 import toast from "react-hot-toast";
 
+
 export const authenticateSignInUser = 
   (sendData, toast, reset, navigate, setLoader) => async (dispatch, getState) => {
     try {
@@ -32,6 +33,7 @@ export const authenticateSignInUser =
         setLoader(false);
     }
 };
+
 
 
 
@@ -149,6 +151,8 @@ export const removeFromCart =  (data, toast) => (dispatch, getState) => {
     toast.success(`${data.productName} removed from cart`);
     localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
 }
+
+
 
 
 
