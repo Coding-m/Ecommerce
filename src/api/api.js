@@ -7,4 +7,15 @@ const api = axios.create({
     withCredentials: true,
 });
 
+api.interceptors.request.use((config) => {
+  const auth = JSON.parse(localStorage.getItem("auth"));
+  let token = auth?.jwtToken;
+  if (token?.includes("=")) token = token.split("=")[1].split(";")[0];
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default api;

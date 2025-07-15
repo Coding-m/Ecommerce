@@ -1,41 +1,4 @@
-
 import api from "../../api/api"
-import toast from "react-hot-toast";
-
-
-export const authenticateSignInUser = 
-  (sendData, toast, reset, navigate, setLoader) => async (dispatch, getState) => {
-    try {
-        setLoader(true);
-
-        const { data } = await api.post("/auth/signin", sendData);
-        console.log("Login Response Data:", data); // debug
-
-        dispatch({ type: "LOGIN_USER", payload: data });
-        localStorage.setItem("auth", JSON.stringify(data));
-
-        reset();
-        toast.success("Login Success");
-
-       
-        if (data?.roles?.includes("ROLE_ADMIN")) {
-            console.log("Redirecting to /admin");
-            navigate("/admin");
-        } else {
-            console.log("Redirecting to /");
-            navigate("/");
-        }
-
-    } catch (error) {
-        console.log(error);
-        toast.error(error?.response?.data?.message || "Internal Server Error");
-    } finally {
-        setLoader(false);
-    }
-};
-
-
-
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
@@ -153,9 +116,44 @@ export const removeFromCart =  (data, toast) => (dispatch, getState) => {
 }
 
 
-
-
-
+export const authenticateSignInUser = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
+    try {
+      setLoader(true);
+      const { data } = await api.post("/auth/signin", sendData);
+  
+      // 🔥 Clean the jwtToken before saving
+      let token = data.jwtToken;
+  
+      // Remove cookie name prefix if present
+      if (token.includes("=")) {
+        token = token.split("=")[1];
+      }
+  
+      // Remove anything after semicolon
+      if (token.includes(";")) {
+        token = token.split(";")[0];
+      }
+  
+      token = token.trim();
+  
+      // Save cleaned token back to data object
+      data.jwtToken = token;
+  
+      // Now store the cleaned object
+      localStorage.setItem("auth", JSON.stringify(data));
+  
+      dispatch({ type: "LOGIN_USER", payload: data });
+      toast.success("Login Success");
+      navigate("/");
+      reset();
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.response?.data?.message || "Internal Server Error");
+    } finally {
+      setLoader(false);
+    }
+  };
+  
 
 export const registerNewUser 
     = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
@@ -165,7 +163,6 @@ export const registerNewUser
             reset();
             toast.success(data?.message || "User Registered Successfully");
             navigate("/login");
-            window.location.reload();
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.message || error?.response?.data?.password || "Internal Server Error");
@@ -181,55 +178,64 @@ export const logOutUser = (navigate) => (dispatch) => {
     navigate("/login");
 };
 
+
 export const addUpdateUserAddress =
-     (sendData, toast, addressId, setOpenAddressModal) => async (dispatch, getState) => {
-    /*
-    const { user } = getState().auth;
-    await api.post(`/addresses`, sendData, {
-          headers: { Authorization: "Bearer " + user.jwtToken },
+  (sendData, toast, addressId, setOpenAddressModal) => async (dispatch) => {
+    dispatch({ type: "BUTTON_LOADER" });
+
+    // ✅ Get token from localStorage
+    const auth = JSON.parse(localStorage.getItem("auth"));
+    const token = auth?.jwtToken;
+
+    try {
+      if (!addressId) {
+        await api.post("/addresses", sendData, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-    */
-    dispatch({ type:"BUTTON_LOADER" });
-    try {
-        if (!addressId) {
-            const { data } = await api.post("/addresses", sendData);
-        } else {
-            await api.put(`/addresses/${addressId}`, sendData);
-        }
-        dispatch(getUserAddresses());
-        toast.success("Address saved successfully");
-        dispatch({ type:"IS_SUCCESS" });
+      } else {
+        await api.put(`/addresses/${addressId}`, sendData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
+      dispatch(getUserAddresses());
+      toast.success("Address saved successfully");
+      dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
-        toast.error(error?.response?.data?.message || "Internal Server Error");
-        dispatch({ type:"IS_ERROR", payload: null });
+      console.log(error);
+      toast.error(error?.response?.data?.message || "Internal Server Error");
+      dispatch({ type: "IS_ERROR", payload: null });
     } finally {
-        setOpenAddressModal(false);
+      setOpenAddressModal(false);
     }
-};
+  };
 
+  export const deleteUserAddress =
+  (toast, addressId, setOpenDeleteModal) => async (dispatch) => {
+    dispatch({ type: "BUTTON_LOADER" });
 
+    const auth = JSON.parse(localStorage.getItem("auth"));
+    const token = auth?.jwtToken;
 
-
-export const deleteUserAddress = 
-    (toast, addressId, setOpenDeleteModal) => async (dispatch, getState) => {
     try {
-        dispatch({ type: "BUTTON_LOADER" });
-        await api.delete(`/addresses/${addressId}`);
-        dispatch({ type: "IS_SUCCESS" });
-        dispatch(getUserAddresses());
-        dispatch(clearCheckoutAddress());
-        toast.success("Address deleted successfully");
+      await api.delete(`/addresses/${addressId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch({ type: "IS_SUCCESS" });
+      dispatch(getUserAddresses());
+      dispatch(clearCheckoutAddress());
+      toast.success("Address deleted successfully");
     } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Some Error Occured",
-         });
+      console.log(error);
+      dispatch({
+        type: "IS_ERROR",
+        payload: error?.response?.data?.message || "Some Error Occured",
+      });
     } finally {
-        setOpenDeleteModal(false);
+      setOpenDeleteModal(false);
     }
-};
+  };
+
 
 
 export const clearCheckoutAddress = () => {
@@ -237,22 +243,27 @@ export const clearCheckoutAddress = () => {
         type: "REMOVE_CHECKOUT_ADDRESS",
     }
 };
-
-export const getUserAddresses = () => async (dispatch, getState) => {
+export const getUserAddresses = () => async (dispatch) => {
+    dispatch({ type: "IS_FETCHING" });
+  
+    const auth = JSON.parse(localStorage.getItem("auth"));
+    const token = auth?.jwtToken;
+  
     try {
-        dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get(`/addresses`);
-        dispatch({type: "USER_ADDRESS", payload: data});
-        dispatch({ type: "IS_SUCCESS" });
+      const { data } = await api.get(`/addresses`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch({ type: "USER_ADDRESS", payload: data });
+      dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch user addresses",
-         });
+      console.log(error);
+      dispatch({
+        type: "IS_ERROR",
+        payload: error?.response?.data?.message || "Failed to fetch user addresses",
+      });
     }
-};
-
+  };
+  
 
 export const selectUserCheckoutAddress = (address) => {
     localStorage.setItem("CHECKOUT_ADDRESS", JSON.stringify(address));
@@ -262,6 +273,7 @@ export const selectUserCheckoutAddress = (address) => {
         payload: address,
     }
 };
+
 
 export const addPaymentMethod = (method) => {
     return {
@@ -284,7 +296,6 @@ export const createUserCart = (sendCartItems) => async (dispatch, getState) => {
          });
     }
 };
-
 
 
 export const getUserCart = () => async (dispatch, getState) => {

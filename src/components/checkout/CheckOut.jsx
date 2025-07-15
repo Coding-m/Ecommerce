@@ -3,33 +3,30 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Step, StepLabel, Stepper, Skeleton, Button } from '@mui/material';
 import { toast } from 'react-toastify';
 
-// Custom components
-import AddressInfo from './AddressInfo';
-import PaymentMethod from './PaymentMethod';
-console.log("PaymentMethod component:", PaymentMethod);
+// ✅ Custom components (adjust paths if needed)
+import AddressInfo from '../../components/checkout/AddressInfo';
+import PaymentMethod from '../../components/checkout/PaymentMethod';
+import OrderSummary from '../../components/checkout/OrderSummary';
+import StripePayment from '../../components/checkout/StripePayment';
+import PaypalPayment from '../../components/checkout/PaypalPayment';
+import ErrorPage from '../../components/checkout/ErrorPage';
 
-
-import OrderSummary from './OrderSummary';
-import StripePayment from './StripePayment';
-import PaypalPayment from './PaypalPayment';
-import ErrorPage from './ErrorPage';
-
-// Actions
+// ✅ Redux action
 import { getUserAddresses } from '../../store/actions';
 
 const CheckOut = () => {
   const [activeStep, setActiveStep] = useState(0);
   const dispatch = useDispatch();
 
+  // ✅ selectors
   const { isLoading, errorMessage } = useSelector((state) => state.errors);
   const { address, selectedUserCheckoutAddress } = useSelector((state) => state.auth);
-  const { paymentMethod } = useSelector((state) => state.payment); // Ensure you have this in store
-  //const { cart, totalPrice } = useSelector((state) => state.cart);
+  const { paymentMethod } = useSelector((state) => state.payment);
   const { cart, totalPrice } = useSelector((state) => state.carts);
-
 
   const steps = ['Enter Location', 'Payment Methods', 'Order Summary', 'Payments'];
 
+  // ✅ Fetch addresses on mount
   useEffect(() => {
     dispatch(getUserAddresses());
   }, [dispatch]);
@@ -39,14 +36,13 @@ const CheckOut = () => {
   };
 
   const handleNext = () => {
+    // Validation checks before proceeding
     if (activeStep === 0 && !selectedUserCheckoutAddress) {
       return toast.error('Please select checkout address before proceeding.');
     }
-
     if (activeStep === 1 && !paymentMethod) {
       return toast.error('Please select payment method before proceeding.');
     }
-
     setActiveStep((prevStep) => prevStep + 1);
   };
 
@@ -55,19 +51,34 @@ const CheckOut = () => {
     (activeStep === 0 && !selectedUserCheckoutAddress) ||
     (activeStep === 1 && !paymentMethod);
 
+  // ✅ styles
+  const styles = {
+    container: {
+      padding: '20px',
+    },
+    heading: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      marginBottom: '20px',
+    },
+    stepper: {
+      marginBottom: '30px',
+    },
+  };
+
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>My Checkout</h2>
 
       <Stepper activeStep={activeStep} alternativeLabel style={styles.stepper}>
-        {steps.map((label) => (
-          <Step key={label}>
+        {steps.map((label, index) => (
+          <Step key={index}>
             <StepLabel
               sx={{
                 '& .MuiStepLabel-label': {
                   fontSize: '1rem',
-                  color: activeStep === steps.indexOf(label) ? '#1976d2' : '#999',
-                  fontWeight: activeStep === steps.indexOf(label) ? 'bold' : 'normal',
+                  color: activeStep === index ? '#1976d2' : '#999',
+                  fontWeight: activeStep === index ? 'bold' : 'normal',
                 },
               }}
             >
@@ -85,18 +96,12 @@ const CheckOut = () => {
         <div className="mt-5">
           {activeStep === 0 && <AddressInfo address={address} />}
           {activeStep === 1 && <PaymentMethod />}
-          {activeStep === 2 && (
-            <OrderSummary
-              totalPrice={totalPrice}
-              cart={cart}
-              address={selectedUserCheckoutAddress}
-              paymentMethod={paymentMethod}
-            />
-          )}
+          {activeStep === 2 && <OrderSummary cart={cart} totalPrice={totalPrice} />}
           {activeStep === 3 && (
-            <>
-              {paymentMethod === 'Stripe' ? <StripePayment /> : <PaypalPayment />}
-            </>
+            <div>
+              {paymentMethod === 'stripe' && <StripePayment />}
+              {paymentMethod === 'paypal' && <PaypalPayment />}
+            </div>
           )}
         </div>
       )}
@@ -123,31 +128,10 @@ const CheckOut = () => {
         )}
       </div>
 
+      {/* Optional error page */}
       {errorMessage && <ErrorPage message={errorMessage} />}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: '3rem',
-    maxWidth: '1500px',
-    margin: '50px auto',
-    backgroundColor: '#ffffff',
-    borderRadius: '16px',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
-    fontFamily: 'Segoe UI, sans-serif',
-  },
-  heading: {
-    textAlign: 'center',
-    color: '#333',
-    marginBottom: '2rem',
-    fontSize: '2rem',
-    fontWeight: 600,
-  },
-  stepper: {
-    backgroundColor: 'transparent',
-  },
 };
 
 export default CheckOut;

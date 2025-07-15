@@ -12,6 +12,8 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   const [form, setForm] = useState({
     productId: null,
@@ -25,8 +27,6 @@ export default function AdminProducts() {
     categoryId: '',
   });
 
-  const [imageFile, setImageFile] = useState(null);
-  const [editing, setEditing] = useState(false);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -76,14 +76,11 @@ export default function AdminProducts() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-<<<<<<< HEAD
-=======
     const method = editing ? 'PUT' : 'POST';
     const url = editing
       ? `${API_BASE}/admin/products/${form.productId}`
       : `${API_BASE}/admin/categories/${form.categoryId}/product`;
 
->>>>>>> 9c28fd31fb8bdae9b32840e1beea21e7740b5312
     const payload = {
       productName: form.productName,
       description: form.description,
@@ -95,42 +92,21 @@ export default function AdminProducts() {
     };
 
     try {
-<<<<<<< HEAD
-      let savedProduct;
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-      if (editing) {
-        const res = await fetch(`${API_BASE}/admin/products/${form.productId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.message || 'Failed to update product');
-        }
-
-        savedProduct = await res.json();
-      } else {
-        const res = await fetch(`${API_BASE}/admin/categories/${form.categoryId}/product`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.message || 'Failed to add product');
-        }
-
-        savedProduct = await res.json();
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Failed to save product');
       }
 
-      // ✅ Step 2: Upload Image if selected
+      const savedProduct = await res.json();
+
       if (imageFile) {
         const formData = new FormData();
         formData.append('image', imageFile);
@@ -141,9 +117,8 @@ export default function AdminProducts() {
         });
 
         if (!imgRes.ok) {
-          const text = await imgRes.text();
-          console.error("Image upload failed:", text);
-          throw new Error('Image upload failed: ' + text);
+          const errText = await imgRes.text();
+          throw new Error('Image upload failed: ' + errText);
         }
       }
 
@@ -153,42 +128,13 @@ export default function AdminProducts() {
     } catch (err) {
       console.error(err);
       alert(err.message || 'Something went wrong');
-=======
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error('Failed to save product');
-      const savedProduct = await res.json();
-
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const imageRes = await fetch(`${API_BASE}/products/${savedProduct.productId}/image`, {
-          method: 'PUT',
-          body: formData,
-        });
-        if (!imageRes.ok) throw new Error('Image upload failed');
-      }
-
-      fetchProducts();
-      handleCloseDialog();
-    } catch (error) {
-      alert(error.message);
->>>>>>> 9c28fd31fb8bdae9b32840e1beea21e7740b5312
     }
   }
 
   function handleEdit(product) {
     setForm({
       ...product,
-<<<<<<< HEAD
-      categoryId: '', // Not needed while editing
-=======
-      categoryId: '',
->>>>>>> 9c28fd31fb8bdae9b32840e1beea21e7740b5312
+      categoryId: '', // Not needed when editing
     });
     setImageFile(null);
     setEditing(true);
@@ -271,19 +217,25 @@ export default function AdminProducts() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-        {products.map(product => (
-          <div key={product.productId} className="border rounded p-4 shadow-sm bg-white">
-            <h3 className="font-semibold text-lg">{product.productName}</h3>
-            <p className="text-sm">{product.description}</p>
-            <p className="text-sm text-gray-600">Price: ${product.price}</p>
-            <div className="flex justify-end space-x-2 mt-3">
-              <Button onClick={() => handleEdit(product)} variant="contained" size="small" color="primary">Edit</Button>
-              <Button onClick={() => handleDelete(product.productId)} variant="contained" size="small" color="error">Delete</Button>
+      {loading ? (
+        <p className="mt-6">Loading products...</p>
+      ) : error ? (
+        <p className="text-red-500 mt-6">{error}</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          {products.map(product => (
+            <div key={product.productId} className="border rounded p-4 shadow-sm bg-white">
+              <h3 className="font-semibold text-lg">{product.productName}</h3>
+              <p className="text-sm">{product.description}</p>
+              <p className="text-sm text-gray-600">Price: ${product.price}</p>
+              <div className="flex justify-end space-x-2 mt-3">
+                <Button onClick={() => handleEdit(product)} variant="contained" size="small" color="primary">Edit</Button>
+                <Button onClick={() => handleDelete(product.productId)} variant="contained" size="small" color="error">Delete</Button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
