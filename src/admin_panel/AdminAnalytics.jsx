@@ -1,29 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api/api';
+import axios from 'axios';
 
 function AdminAnalytics() {
   const [stats, setStats] = useState({});
   const [lowStock, setLowStock] = useState([]);
   const [orders, setOrders] = useState([]);
 
+  // ✅ Get token from localStorage (stored after login)
+  const auth = JSON.parse(localStorage.getItem('auth') || '{}');
+  const token = auth?.jwtToken || '';
+
   const fetchData = async () => {
     try {
-      const statsRes = await api.get('/api/admin/stats');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const statsRes = await axios.get('http://localhost:8080/api/admin/stats', { headers });
       setStats(statsRes.data);
 
-      const stockRes = await api.get('/api/admin/low-stock');
+      const stockRes = await axios.get('http://localhost:8080/api/admin/low-stock', { headers });
       setLowStock(stockRes.data);
 
-      const ordersRes = await api.get('/api/admin/recent-orders');
+      const ordersRes = await axios.get('http://localhost:8080/api/admin/recent-orders', { headers });
       setOrders(ordersRes.data);
     } catch (err) {
-      console.error('Error fetching admin data', err);
+      console.error('❌ Error fetching admin analytics data:', err);
     }
   };
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(fetchData, 5000); // auto-refresh every 5s
     return () => clearInterval(interval);
   }, []);
 
@@ -31,6 +37,7 @@ function AdminAnalytics() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
 
+      {/* 📊 Stats cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white shadow p-4 rounded-xl">
           <h2 className="text-lg">Orders Today</h2>
@@ -46,6 +53,7 @@ function AdminAnalytics() {
         </div>
       </div>
 
+      {/* 🚨 Low Stock */}
       <h2 className="text-xl font-bold mt-6 mb-2">Low Stock Products</h2>
       <ul className="mb-6">
         {lowStock.map((p) => (
@@ -56,6 +64,7 @@ function AdminAnalytics() {
         ))}
       </ul>
 
+      {/* 📦 Recent Orders */}
       <h2 className="text-xl font-bold mt-6 mb-2">Recent Orders</h2>
       <table className="w-full text-left border">
         <thead>

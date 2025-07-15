@@ -13,71 +13,35 @@ import AdminCategories from './AdminCategories';
 import AdminAnalytics from './AdminAnalytics';
 
 const NAVIGATION = [
-  {
-    kind: 'header',
-    title: 'Main Menu',
-  },
-  {
-    segment: 'dashboard',
-    title: 'Admin Dashboard',
-    icon: <DashboardIcon />,
-  },
-  {
-    segment: 'products',
-    title: 'Products',
-    icon: <ShoppingCartIcon />,
-  },
-  {
-    segment: 'categories',
-    title: 'Categories',
-    icon: <LayersIcon />,
-  },
-  {
-    kind: 'divider',
-  },
-  {
-    kind: 'header',
-    title: 'Reports',
-  },
+  { kind: 'header', title: 'Main Menu' },
+  { segment: 'dashboard', title: 'Admin Dashboard', icon: <DashboardIcon /> },
+  { segment: 'products', title: 'Products', icon: <ShoppingCartIcon /> },
+  { segment: 'categories', title: 'Categories', icon: <LayersIcon /> },
+  { kind: 'divider' },
+  { kind: 'header', title: 'Reports' },
   {
     segment: 'analytics',
     title: 'Analytics',
     icon: <BarChartIcon />,
     children: [
-      {
-        segment: 'sales',
-        title: 'Sales Reports',
-        icon: <DescriptionIcon />,
-      },
-      {
-        segment: 'traffic',
-        title: 'Website Traffic',
-        icon: <DescriptionIcon />,
-      },
+      { segment: 'sales', title: 'Sales Reports', icon: <DescriptionIcon /> },
+      { segment: 'traffic', title: 'Website Traffic', icon: <DescriptionIcon /> },
     ],
   },
 ];
 
 const demoTheme = createTheme({
   colorSchemes: { light: true, dark: true },
-  cssVariables: {
-    colorSchemeSelector: 'class',
-  },
+  cssVariables: { colorSchemeSelector: 'class' },
   breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 600,
-      lg: 1200,
-      xl: 1536,
-    },
+    values: { xs: 0, sm: 600, md: 600, lg: 1200, xl: 1536 },
   },
 });
 
 export default function AdminDashboard(props) {
   const { window } = props;
-
   const [pathname, setPathname] = React.useState('/dashboard');
+
   const router = React.useMemo(
     () => ({
       pathname,
@@ -87,21 +51,17 @@ export default function AdminDashboard(props) {
     [pathname]
   );
 
-  // State to hold products and categories count
   const [products, setProducts] = React.useState(null);
   const [categoriesCount, setCategoriesCount] = React.useState(null);
   const [loadingProducts, setLoadingProducts] = React.useState(true);
   const [loadingCategories, setLoadingCategories] = React.useState(true);
 
   React.useEffect(() => {
-    // Fetch products from backend API (replace base URL if needed)
+    // fetch product count
     fetch('/api/public/products?pageNumber=1&pageSize=10')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch products');
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
-        setProducts(data.content || []); // assuming ProductResponse has `content` array
+        setProducts(data.content || []);
         setLoadingProducts(false);
       })
       .catch(() => {
@@ -109,12 +69,9 @@ export default function AdminDashboard(props) {
         setLoadingProducts(false);
       });
 
-    // Fetch categories count from backend API - replace URL as per your backend
+    // fetch category count
     fetch('/api/public/categories')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch categories');
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setCategoriesCount(Array.isArray(data) ? data.length : 0);
         setLoadingCategories(false);
@@ -140,9 +97,10 @@ export default function AdminDashboard(props) {
           )}
           {pathname === '/products' && <AdminProducts />}
           {pathname === '/categories' && <AdminCategories />}
-          {pathname ==='/analytics' && <AdminAnalytics />}
-          {/* Optionally handle unknown routes */}
-          {!['/dashboard', '/products', '/categories'].includes(pathname) && (
+          {pathname.startsWith('/analytics') && <AdminAnalytics />}
+
+          {/* fallback */}
+          {!['/dashboard', '/products', '/categories', '/analytics'].includes(pathname) && (
             <div>Page Not Found</div>
           )}
         </PageContainer>
