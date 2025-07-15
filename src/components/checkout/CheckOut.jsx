@@ -96,7 +96,13 @@ const CheckOut = () => {
         <div className="mt-5">
           {activeStep === 0 && <AddressInfo address={address} />}
           {activeStep === 1 && <PaymentMethod />}
-          {activeStep === 2 && <OrderSummary cart={cart} totalPrice={totalPrice} />}
+          {activeStep === 2 && 
+          <OrderSummary cart={cart}
+           totalPrice={totalPrice}
+           address={selectedUserCheckoutAddress} 
+           paymentMethod={paymentMethod}   
+            
+           />}
           {activeStep === 3 && (
             <div>
               {paymentMethod === 'stripe' && <StripePayment />}

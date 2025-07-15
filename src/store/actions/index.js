@@ -116,43 +116,49 @@ export const removeFromCart =  (data, toast) => (dispatch, getState) => {
 }
 
 
-export const authenticateSignInUser = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
-    try {
-      setLoader(true);
-      const { data } = await api.post("/auth/signin", sendData);
-  
-      // 🔥 Clean the jwtToken before saving
-      let token = data.jwtToken;
-  
-      // Remove cookie name prefix if present
-      if (token.includes("=")) {
-        token = token.split("=")[1];
-      }
-  
-      // Remove anything after semicolon
-      if (token.includes(";")) {
-        token = token.split(";")[0];
-      }
-  
-      token = token.trim();
-  
-      // Save cleaned token back to data object
-      data.jwtToken = token;
-  
-      // Now store the cleaned object
-      localStorage.setItem("auth", JSON.stringify(data));
-  
-      dispatch({ type: "LOGIN_USER", payload: data });
-      toast.success("Login Success");
-      navigate("/");
-      reset();
-    } catch (error) {
-      console.log(error);
-      toast.error(error?.response?.data?.message || "Internal Server Error");
-    } finally {
-      setLoader(false);
+export const authenticateSignInUser = (
+  sendData,
+  toast,
+  reset,
+  navigate,
+  setLoader
+) => async (dispatch) => {
+  try {
+    setLoader(true);
+    const { data } = await api.post("/auth/signin", sendData);
+
+    // Clean jwtToken if needed
+    let token = data.jwtToken;
+    if (token?.includes("=")) token = token.split("=")[1];
+    if (token?.includes(";")) token = token.split(";")[0];
+    data.jwtToken = token?.trim();
+
+    // Save auth data
+    localStorage.setItem("auth", JSON.stringify(data));
+
+    // Dispatch login
+    dispatch({ type: "LOGIN_USER", payload: data });
+    toast.success("Login Successful ✅");
+
+    // ✅ Redirect based on roles
+    if (Array.isArray(data.roles) && data.roles.includes("ROLE_ADMIN")) {
+      navigate("/admin"); // 👉 Admin dashboard
+    } else {
+      navigate("/"); // 👉 Normal users go to home
     }
-  };
+
+    reset && reset();
+  } catch (error) {
+    console.error(error);
+    toast.error(
+      error?.response?.data?.message ||
+        "Invalid credentials. Please try again."
+    );
+  } finally {
+    setLoader(false);
+  }
+};
+
   
 
 export const registerNewUser 
