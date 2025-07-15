@@ -32,7 +32,9 @@ export default function AdminCategories() {
   const [addingCategory, setAddingCategory] = React.useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = React.useState(null);
 
-  const token = localStorage.getItem('token'); // Replace with your actual auth logic
+  // ✅ read auth from localStorage
+  const auth = JSON.parse(localStorage.getItem('auth') || '{}');
+  const token = auth?.jwtToken || '';
 
   React.useEffect(() => {
     fetchCategories();
@@ -66,6 +68,7 @@ export default function AdminCategories() {
     }
     setAddingCategory(true);
     try {
+      // ✅ POST to /api/public/categories
       await axios.post(
         'http://localhost:8080/api/public/categories',
         { categoryName: newCategory },

@@ -10,6 +10,7 @@ import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { PageContainer } from '@toolpad/core/PageContainer';
 import AdminProducts from './AdminProducts';
 import AdminCategories from './AdminCategories';
+import AdminAnalytics from './AdminAnalytics';
 
 const NAVIGATION = [
   {
@@ -139,6 +140,7 @@ export default function AdminDashboard(props) {
           )}
           {pathname === '/products' && <AdminProducts />}
           {pathname === '/categories' && <AdminCategories />}
+          {pathname ==='/analytics' && <AdminAnalytics />}
           {/* Optionally handle unknown routes */}
           {!['/dashboard', '/products', '/categories'].includes(pathname) && (
             <div>Page Not Found</div>

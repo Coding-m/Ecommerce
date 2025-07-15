@@ -30,6 +30,10 @@ export default function AdminProducts() {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
+  // ✅ Read auth data and token
+  const authData = JSON.parse(localStorage.getItem('auth') || '{}');
+  const token = authData.jwtToken;
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -96,6 +100,7 @@ export default function AdminProducts() {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // ✅ use token here
         },
         body: JSON.stringify(payload),
       });
@@ -113,6 +118,9 @@ export default function AdminProducts() {
 
         const imgRes = await fetch(`${API_BASE}/products/${savedProduct.productId}/image`, {
           method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`, // ✅ use token here too
+          },
           body: formData,
         });
 
@@ -144,7 +152,12 @@ export default function AdminProducts() {
   function handleDelete(id) {
     if (!window.confirm('Are you sure to delete this product?')) return;
 
-    fetch(`${API_BASE}/admin/products/${id}`, { method: 'DELETE' })
+    fetch(`${API_BASE}/admin/products/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`, // ✅ use token here
+      },
+    })
       .then(res => {
         if (!res.ok) throw new Error('Failed to delete');
         return res.json();
