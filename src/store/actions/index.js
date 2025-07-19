@@ -363,3 +363,52 @@ export const stripePaymentConfirmation
             setErrorMesssage("Payment Failed. Please try again.");
         }
 };
+
+
+
+import { toast } from "react-toastify"; // ✅ Make sure you have react-toastify installed
+
+// ✅ Create Razorpay order on backend
+export const createRazorpayOrder = (totalPrice) => async (dispatch) => {
+  try {
+    dispatch({ type: "IS_FETCHING" });
+
+    // ✅ Call backend API (no extra /api)
+    const { data } = await api.post(
+      "/payments/create_order",
+      null,
+      {
+        params: { amount: totalPrice, currency: "INR" },
+      }
+    );
+
+    // ✅ Parse response if backend returns as string
+    let orderData = data;
+    if (typeof data === "string") {
+      try {
+        orderData = JSON.parse(data);
+      } catch (e) {
+        console.warn("⚠️ Could not parse Razorpay order JSON:", data);
+      }
+    }
+
+    // ✅ Dispatch Redux action
+    dispatch({ type: "RAZORPAY_ORDER_CREATED", payload: orderData });
+
+    // ✅ Show success toast
+    toast.success("✅ Razorpay order created");
+    dispatch({ type: "IS_SUCCESS" });
+
+    return orderData;
+  } catch (error) {
+    console.error("❌ Error creating Razorpay order:", error);
+    toast.error(
+      error?.response?.data?.message || "Failed to create Razorpay order"
+    );
+    dispatch({
+      type: "IS_ERROR",
+      payload:
+        error?.response?.data?.message || "Failed to create Razorpay order",
+    });
+  }
+};

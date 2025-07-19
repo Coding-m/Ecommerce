@@ -16,7 +16,7 @@ const PaymentMethod = () => {
 
   // ✅ Handle selection change
   const handlePaymentChange = (event) => {
-    const selectedMethod = event.target.value;
+    const selectedMethod = event.target.value.toLowerCase(); // normalize to lowercase
 
     // 👉 Update Redux state
     dispatch(addPaymentMethod(selectedMethod));
@@ -38,15 +38,21 @@ const PaymentMethod = () => {
           onChange={handlePaymentChange}
         >
           <FormControlLabel
-            value="Stripe"
+            value="stripe"
             control={<Radio color="primary" />}
             label="Stripe"
             className="text-gray-700"
           />
           <FormControlLabel
-            value="Paypal"
+            value="paypal"
             control={<Radio color="primary" />}
-            label="Paypal"
+            label="PayPal"
+            className="text-gray-700"
+          />
+          <FormControlLabel
+            value="razorpay"
+            control={<Radio color="primary" />}
+            label="Razorpay"
             className="text-gray-700"
           />
         </RadioGroup>

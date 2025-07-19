@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Step, StepLabel, Stepper, Skeleton, Button } from '@mui/material';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Step, StepLabel, Stepper, Skeleton, Button } from "@mui/material";
+import { toast } from "react-toastify";
 
-// ✅ Custom components (adjust paths if needed)
-import AddressInfo from '../../components/checkout/AddressInfo';
-import PaymentMethod from '../../components/checkout/PaymentMethod';
-import OrderSummary from '../../components/checkout/OrderSummary';
-import StripePayment from '../../components/checkout/StripePayment';
-import PaypalPayment from '../../components/checkout/PaypalPayment';
-import ErrorPage from '../../components/checkout/ErrorPage';
-
-// ✅ Redux action
-import { getUserAddresses } from '../../store/actions';
+// ✅ Custom components
+import AddressInfo from "../../components/checkout/AddressInfo";
+import PaymentMethod from "../../components/checkout/PaymentMethod";
+import OrderSummary from "../../components/checkout/OrderSummary";
+import StripePayment from "../../components/checkout/StripePayment";
+import PaypalPayment from "../../components/checkout/PaypalPayment";
+import ErrorPage from "../../components/checkout/ErrorPage";
+import { getUserAddresses } from "../../store/actions"; // ⬅️ removed createRazorpayOrder import
 
 const CheckOut = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -20,11 +18,13 @@ const CheckOut = () => {
 
   // ✅ selectors
   const { isLoading, errorMessage } = useSelector((state) => state.errors);
-  const { address, selectedUserCheckoutAddress } = useSelector((state) => state.auth);
+  const { address, selectedUserCheckoutAddress } = useSelector(
+    (state) => state.auth
+  );
   const { paymentMethod } = useSelector((state) => state.payment);
   const { cart, totalPrice } = useSelector((state) => state.carts);
 
-  const steps = ['Enter Location', 'Payment Methods', 'Order Summary', 'Payments'];
+  const steps = ["Enter Location", "Payment Methods", "Order Summary", "Payments"];
 
   // ✅ Fetch addresses on mount
   useEffect(() => {
@@ -38,10 +38,10 @@ const CheckOut = () => {
   const handleNext = () => {
     // Validation checks before proceeding
     if (activeStep === 0 && !selectedUserCheckoutAddress) {
-      return toast.error('Please select checkout address before proceeding.');
+      return toast.error("Please select checkout address before proceeding.");
     }
     if (activeStep === 1 && !paymentMethod) {
-      return toast.error('Please select payment method before proceeding.');
+      return toast.error("Please select payment method before proceeding.");
     }
     setActiveStep((prevStep) => prevStep + 1);
   };
@@ -51,19 +51,10 @@ const CheckOut = () => {
     (activeStep === 0 && !selectedUserCheckoutAddress) ||
     (activeStep === 1 && !paymentMethod);
 
-  // ✅ styles
   const styles = {
-    container: {
-      padding: '20px',
-    },
-    heading: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      marginBottom: '20px',
-    },
-    stepper: {
-      marginBottom: '30px',
-    },
+    container: { padding: "20px" },
+    heading: { fontSize: "24px", fontWeight: "bold", marginBottom: "20px" },
+    stepper: { marginBottom: "30px" },
   };
 
   return (
@@ -75,10 +66,10 @@ const CheckOut = () => {
           <Step key={index}>
             <StepLabel
               sx={{
-                '& .MuiStepLabel-label': {
-                  fontSize: '1rem',
-                  color: activeStep === index ? '#1976d2' : '#999',
-                  fontWeight: activeStep === index ? 'bold' : 'normal',
+                "& .MuiStepLabel-label": {
+                  fontSize: "1rem",
+                  color: activeStep === index ? "#1976d2" : "#999",
+                  fontWeight: activeStep === index ? "bold" : "normal",
                 },
               }}
             >
@@ -96,17 +87,19 @@ const CheckOut = () => {
         <div className="mt-5">
           {activeStep === 0 && <AddressInfo address={address} />}
           {activeStep === 1 && <PaymentMethod />}
-          {activeStep === 2 && 
-          <OrderSummary cart={cart}
-           totalPrice={totalPrice}
-           address={selectedUserCheckoutAddress} 
-           paymentMethod={paymentMethod}   
-            
-           />}
+          {activeStep === 2 && (
+            <OrderSummary
+              cart={cart}
+              totalPrice={totalPrice}
+              address={selectedUserCheckoutAddress}
+              paymentMethod={paymentMethod}
+            />
+          )}
           {activeStep === 3 && (
             <div>
-              {paymentMethod === 'stripe' && <StripePayment />}
-              {paymentMethod === 'paypal' && <PaypalPayment />}
+              {paymentMethod === "stripe" && <StripePayment />}
+              {paymentMethod === "paypal" && <PaypalPayment />}
+              {paymentMethod === "razorpay" && <PaymentTest />}
             </div>
           )}
         </div>
@@ -115,7 +108,7 @@ const CheckOut = () => {
       {/* Footer Controls */}
       <div
         className="flex justify-between items-center px-4 fixed z-50 h-24 bottom-0 bg-white left-0 w-full py-4 border-slate-200"
-        style={{ boxShadow: '0 -2px 4px rgba(100, 100, 100, 0.15)' }}
+        style={{ boxShadow: "0 -2px 4px rgba(100, 100, 100, 0.15)" }}
       >
         <Button variant="outlined" disabled={activeStep === 0} onClick={handleBack}>
           Back
@@ -125,7 +118,7 @@ const CheckOut = () => {
           <button
             disabled={isProceedDisabled}
             className={`bg-customBlue font-semibold px-6 h-10 rounded-md text-white ${
-              isProceedDisabled ? 'opacity-60' : ''
+              isProceedDisabled ? "opacity-60" : ""
             }`}
             onClick={handleNext}
           >
@@ -134,8 +127,27 @@ const CheckOut = () => {
         )}
       </div>
 
-      {/* Optional error page */}
       {errorMessage && <ErrorPage message={errorMessage} />}
+    </div>
+  );
+};
+
+// ✅ Razorpay testing component (redirect to backend page)
+const PaymentTest = () => {
+  const handleRazorpayPayment = () => {
+    // Redirect to your backend controller that serves index.html
+    window.location.href = "http://localhost:8080/razorpay";
+  };
+
+  return (
+    <div className="p-4">
+      <h3 className="text-lg font-bold mb-4">Pay with Razorpay (Testing)</h3>
+      <button
+        onClick={handleRazorpayPayment}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+      >
+        Pay Now
+      </button>
     </div>
   );
 };
